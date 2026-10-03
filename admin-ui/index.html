@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wsrv admin</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M5 9h12M5 16h18M5 23h9" /><circle cx="24" cy="9" r="3"/><circle cx="27" cy="23" r="3"/></svg>
+    <span>wsrv</span>
+  </div>
+  <p class="state" id="state" aria-live="polite">Connecting…</p>
+  <button class="quiet" id="signout" hidden>Sign out</button>
+</header>
+
+<main id="app" hidden>
+  <section class="routes" aria-labelledby="routes-title">
+    <div class="routes-head">
+      <h1 id="routes-title">Web roots</h1>
+      <button class="primary" id="add">Add web root</button>
+    </div>
+    <p class="hint" id="fallback" hidden>No folders are mapped yet, so <a href="https://localhost/" target="_blank" rel="noopener">https://localhost</a> shows the “Hello, world!” page.</p>
+    <ul class="table" id="sites"></ul>
+    <div class="empty" id="empty" hidden>
+      <p>Map a folder to an address like <code>https://local.blog</code> and it’s served over HTTPS straight away.</p>
+      <button class="primary" id="add-empty">Add your first web root</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h3-title">
+    <h2 id="h3-title">HTTP/3</h2>
+    <p id="h3-state"></p>
+    <p class="muted">Browsers only use HTTP/3 with certificates from public authorities unless told otherwise, so they fall back to HTTP/2 for local sites. To see HTTP/3, launch a separate Edge profile with this command:</p>
+    <div class="command">
+      <code id="edge-cmd"></code>
+      <button class="quiet" id="copy-cmd">Copy</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="settings-title">
+    <h2 id="settings-title">Settings</h2>
+    <label class="switch-row">
+      <input type="checkbox" id="access-log">
+      <span>Write an access log to <code id="log-path"></code></span>
+    </label>
+  </section>
+</main>
+
+<main id="signed-out" class="signed-out" hidden>
+  <h1>Sign in to manage wsrv</h1>
+  <p>Open <b>wsrv Admin</b> from the Start menu, or run <code>wsrv open-admin</code> in a terminal. Either one opens this page with a single-use sign-in link.</p>
+</main>
+
+<dialog id="editor" aria-labelledby="editor-title">
+  <form id="site-form" method="dialog" novalidate>
+    <h2 id="editor-title">Add web root</h2>
+    <div class="field">
+      <label for="f-host">Address</label>
+      <div class="addr">
+        <span class="addr-fixed">https://local.</span>
+        <input id="f-host" name="host" required autocomplete="off" spellcheck="false" placeholder="blog" pattern="[a-z0-9]([a-z0-9\-\.]*[a-z0-9])?">
+        <span class="addr-fixed">:</span>
+        <input id="f-port" name="port" type="number" min="1" max="65535" value="443" required class="port" aria-label="Port">
+      </div>
+      <p class="note">Lower-case letters, digits and hyphens. Port 443 needs no port in the URL.</p>
+    </div>
+    <div class="field">
+      <label for="f-root">Folder</label>
+      <div class="folder-row">
+        <input id="f-root" name="root" spellcheck="false" placeholder="Leave empty to show “Hello, world!”">
+        <button type="button" class="quiet" id="browse">Browse</button>
+      </div>
+      <div class="browser" id="browser" hidden>
+        <div class="browser-head">
+          <button type="button" class="quiet" id="up">Up</button>
+          <code id="browser-path"></code>
+          <button type="button" class="quiet" id="choose">Use this folder</button>
+        </div>
+        <ul id="browser-list"></ul>
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-name">Name</label>
+      <input id="f-name" name="name" autocomplete="off" placeholder="Shown in this list only">
+    </div>
+    <fieldset class="options">
+      <legend>Options</legend>
+      <label class="switch-row"><input type="checkbox" id="f-enabled" checked> <span>Serve this web root</span></label>
+      <label class="switch-row"><input type="checkbox" id="f-listing"> <span>List folder contents when there’s no index.html</span></label>
+      <label class="switch-row"><input type="checkbox" id="f-hidden"> <span>Serve hidden files and dot-files</span></label>
+      <div class="field compact">
+        <label for="f-cache">Cache-Control</label>
+        <input id="f-cache" spellcheck="false" value="no-cache">
+      </div>
+    </fieldset>
+    <p class="error" id="form-error" role="alert" hidden></p>
+    <div class="actions">
+      <button type="button" class="danger" id="delete" hidden>Delete</button>
+      <span class="grow"></span>
+      <button type="button" class="quiet" id="cancel">Cancel</button>
+      <button type="submit" class="primary" id="save">Save</button>
+    </div>
+  </form>
+</dialog>
+</body>
+</html>
