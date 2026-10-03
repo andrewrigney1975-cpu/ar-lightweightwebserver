@@ -11,6 +11,8 @@ A super-lightweight HTTPS / HTTP/3 static web server for Windows 11 x64.
 - One 1.5 MB `wsrv.exe`. Runtime dependencies are Windows system DLLs only
   (`httpapi`, `crypt32`, `ncrypt`, `advapi32`, `shell32`, `ole32`, `user32`, `kernel32`).
 
+![The wsrv admin site at https://local.admin:8192 with two web roots mapped](docs/admin.jpg)
+
 See [PLAN.md](PLAN.md) for the design and the reasoning behind it.
 
 ## Install
@@ -27,6 +29,9 @@ starts the `wsrv` Windows service (automatic start, restarts on failure) and add
 Start-menu shortcut.
 
 If HTTP/3 was not already enabled in http.sys, reboot once; until then sites are served over HTTP/2.
+
+To upgrade, run `wsrv install` again from the new build: it stops the service, replaces the
+executable and starts it again. Sites, certificates and settings are kept.
 
 ## Use
 
@@ -54,6 +59,21 @@ Leave the folder empty to serve a black "Hello, world!" page. When no folders ar
 | `wsrv open-admin` | Sign in to the admin site in your browser. |
 | `wsrv run [--data DIR] [--open]` | Run in the foreground for development (elevated; stop the service first). |
 | `wsrv status` | Service and HTTP/3 status. |
+
+### HTTP/3 status
+
+http.sys reads its HTTP/3 switch only when Windows starts, so wsrv reports three states (in
+`wsrv status`, the service log and the admin site header):
+
+| State | Meaning |
+|---|---|
+| **HTTP/3 on** | The switch is on and Windows has restarted since it was set. |
+| **HTTP/3 after reboot** | The switch is on but was set after Windows started. Reboot to activate it. |
+| **HTTP/3 off** | The switch is off. `wsrv install` turns it on. |
+
+wsrv tells these apart by comparing when http.sys's settings were last changed with when Windows
+started. Changing any other http.sys setting since boot also reads as "after reboot", and so does
+restarting the HTTP service instead of rebooting.
 
 ## Seeing HTTP/3 in a browser
 
