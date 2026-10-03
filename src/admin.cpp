@@ -313,8 +313,8 @@ void Admin::ApiStatus(Response& resp) {
     auto sites = store_.ListSites();
     json::Value v = json::Value::Object();
     v.set("version", json::Value::String(kVersion));
-    v.set("http3Enabled", json::Value::Bool(ReadHttpParameter(L"EnableHttp3").value_or(0) != 0));
-    v.set("altSvcEnabled", json::Value::Bool(ReadHttpParameter(L"EnableAltSvc").value_or(0) != 0));
+    v.set("http3", json::Value::String(HttpFeatureStateName(QueryHttpFeature(L"EnableHttp3"))));
+    v.set("altSvc", json::Value::String(HttpFeatureStateName(QueryHttpFeature(L"EnableAltSvc"))));
     v.set("dataDir", json::Value::String(ToUtf8(DefaultDataDir())));
     v.set("accessLog", json::Value::Bool(log::AccessLogEnabled()));
     v.set("edgeCommand", json::Value::String(EdgeCommand(sites)));

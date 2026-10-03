@@ -62,8 +62,15 @@ bool Server::Start(const ServerOptions& opts, std::string* error) {
         SetThreadpoolTimer(renewTimer_, &ft, 24 * 3600 * 1000, 60 * 1000);
     }
 
-    if (!ReadHttpParameter(L"EnableHttp3").value_or(0))
+    switch (QueryHttpFeature(L"EnableHttp3")) {
+    case HttpFeatureState::Disabled:
         log::Warn("HTTP/3 is disabled in http.sys (EnableHttp3). Run 'wsrv install' and reboot to enable it. Serving HTTP/2.");
+        break;
+    case HttpFeatureState::PendingRestart:
+        log::Warn("HTTP/3 was turned on in http.sys after Windows started; it takes effect after a reboot. Serving HTTP/2.");
+        break;
+    default: break;
+    }
     started_ = true;
     log::Info(std::string("wsrv ") + kVersion + " started; admin at https://local.admin:8192/");
     return true;

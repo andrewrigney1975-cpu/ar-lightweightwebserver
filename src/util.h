@@ -64,6 +64,12 @@ std::wstring CurrentUserSidString();
 // HKLM\SYSTEM\CurrentControlSet\Services\HTTP\Parameters value (e.g. EnableHttp3).
 std::optional<DWORD> ReadHttpParameter(const wchar_t* name);
 
+// http.sys reads its feature switches only when the HTTP driver loads (at boot). A switch that is
+// on but was written after boot is not active yet.
+enum class HttpFeatureState { Disabled, PendingRestart, Enabled };
+HttpFeatureState QueryHttpFeature(const wchar_t* name);
+const char* HttpFeatureStateName(HttpFeatureState s);  // "disabled" | "pending" | "enabled"
+
 // RAII for kernel handles.
 class UniqueHandle {
 public:

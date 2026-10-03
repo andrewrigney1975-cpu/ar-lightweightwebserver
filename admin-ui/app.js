@@ -34,12 +34,16 @@ function displayUrl(s) {
 function renderState(status) {
   const state = $("state");
   state.replaceChildren();
-  const h3 = el("span", { className: status.http3Enabled ? "ok" : "warn",
-    textContent: status.http3Enabled ? "HTTP/3 on" : "HTTP/3 off" });
-  state.append(`Running ${status.version}. `, h3);
-  $("h3-state").textContent = status.http3Enabled
-    ? "HTTP/3 is enabled in Windows. Browsers discover it through the Alt-Svc header on the first HTTP/2 response."
-    : "HTTP/3 is disabled in Windows (http.sys EnableHttp3). Run “wsrv install” as administrator and reboot to enable it. Sites are served over HTTP/2 until then.";
+  const h3Text = {
+    enabled: ["ok", "HTTP/3 on",
+      "HTTP/3 is enabled in Windows. Browsers discover it through the Alt-Svc header on the first HTTP/2 response."],
+    pending: ["warn", "HTTP/3 after reboot",
+      "HTTP/3 is turned on in Windows but takes effect after the next reboot. Sites are served over HTTP/2 until then."],
+    disabled: ["warn", "HTTP/3 off",
+      "HTTP/3 is disabled in Windows (http.sys EnableHttp3). Run “wsrv install” as administrator, then reboot. Sites are served over HTTP/2 until then."],
+  }[status.http3] || ["warn", "HTTP/3 unknown", ""];
+  state.append(`Running ${status.version}. `, el("span", { className: h3Text[0], textContent: h3Text[1] }));
+  $("h3-state").textContent = h3Text[2];
   $("edge-cmd").textContent = status.edgeCommand;
   $("access-log").checked = status.accessLog;
   $("log-path").textContent = status.dataDir + "\\logs\\access.log";

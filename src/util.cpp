@@ -281,4 +281,33 @@ std::optional<DWORD> ReadHttpParameter(const wchar_t* name) {
     return v;
 }
 
+HttpFeatureState QueryHttpFeature(const wchar_t* name) {
+    if (!ReadHttpParameter(name).value_or(0)) return HttpFeatureState::Disabled;
+    HKEY key;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Services\\HTTP\\Parameters", 0, KEY_QUERY_VALUE,
+                      &key) != ERROR_SUCCESS)
+        return HttpFeatureState::Enabled;
+    FILETIME lastWrite{};
+    LSTATUS r = RegQueryInfoKeyW(key, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                 nullptr, &lastWrite);
+    RegCloseKey(key);
+    if (r != ERROR_SUCCESS) return HttpFeatureState::Enabled;
+
+    // Boot time = now - uptime. The key's timestamp covers every value under it, so a change to an
+    // unrelated http.sys setting since boot also reads as "pending" — the conservative answer.
+    FILETIME now;
+    GetSystemTimeAsFileTime(&now);
+    ULARGE_INTEGER n{{now.dwLowDateTime, now.dwHighDateTime}}, w{{lastWrite.dwLowDateTime, lastWrite.dwHighDateTime}};
+    ULONGLONG boot = n.QuadPart - GetTickCount64() * 10000ull;
+    return w.QuadPart > boot ? HttpFeatureState::PendingRestart : HttpFeatureState::Enabled;
+}
+
+const char* HttpFeatureStateName(HttpFeatureState s) {
+    switch (s) {
+    case HttpFeatureState::Enabled: return "enabled";
+    case HttpFeatureState::PendingRestart: return "pending";
+    default: return "disabled";
+    }
+}
+
 } // namespace wsrv

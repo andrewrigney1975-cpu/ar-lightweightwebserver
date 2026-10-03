@@ -410,10 +410,15 @@ int PrintStatus() {
     }
     Print(std::string("wsrv ") + kVersion);
     Print(std::string("Service:      ") + state);
-    Print(std::string("HTTP/3:       ") + (ReadHttpParameter(L"EnableHttp3").value_or(0) ? "enabled" : "disabled") +
-          " (http.sys EnableHttp3)");
-    Print(std::string("Alt-Svc:      ") + (ReadHttpParameter(L"EnableAltSvc").value_or(0) ? "enabled" : "disabled") +
-          " (http.sys EnableAltSvc)");
+    auto describe = [](HttpFeatureState s) -> std::string {
+        switch (s) {
+        case HttpFeatureState::Enabled: return "enabled";
+        case HttpFeatureState::PendingRestart: return "turned on, takes effect after a reboot";
+        default: return "disabled";
+        }
+    };
+    Print("HTTP/3:       " + describe(QueryHttpFeature(L"EnableHttp3")) + " (http.sys EnableHttp3)");
+    Print("Alt-Svc:      " + describe(QueryHttpFeature(L"EnableAltSvc")) + " (http.sys EnableAltSvc)");
     Print("Data:         " + ToUtf8(DefaultDataDir()));
     Print("Admin:        https://local.admin:8192/");
     return 0;

@@ -22,7 +22,7 @@ function Request($url, $method = 'GET') {
 
 Write-Host "wsrv smoke test"
 Check "service is running" { (Get-Service wsrv).Status -eq 'Running' }
-Check "HTTP/3 enabled in http.sys" {
+Check "HTTP/3 switched on in http.sys (active after reboot)" {
     (Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\HTTP\Parameters').EnableHttp3 -eq 1
 }
 Check "hosts file has local.admin" { (Get-Content "$env:windir\System32\drivers\etc\hosts" -Raw) -match '127\.0\.0\.1 local\.admin' }
