@@ -17,10 +17,11 @@ See [PLAN.md](PLAN.md) for the design and the reasoning behind it.
 
 ## Install
 
-From an **elevated** prompt:
+Download `wsrv.exe` from the [latest release](https://github.com/andrewrigney1975-cpu/ar-lightweightwebserver/releases/latest)
+(or [build it](#build)), then from an **elevated** prompt in that folder:
 
 ```
-wsrv install
+.\wsrv.exe install
 ```
 
 This copies `wsrv.exe` to `C:\Program Files\wsrv`, creates the private configuration database in
@@ -130,6 +131,40 @@ reservation.
 After `wsrv install`, `tests\smoke.ps1` (elevated) checks the installed service end to end.
 
 SQLite 3.53.4 is vendored in `third_party/sqlite` (public domain).
+
+## Releases
+
+Prebuilt binaries are on the [Releases page](https://github.com/andrewrigney1975-cpu/ar-lightweightwebserver/releases).
+
+| Version | Date | Notes |
+|---|---|---|
+| [1.0.0](https://github.com/andrewrigney1975-cpu/ar-lightweightwebserver/releases/tag/v1.0.0) | 2026-10-03 | First release. |
+
+Each release has `wsrv.exe` and `SHA256SUMS.txt`. To check a download in PowerShell:
+
+```powershell
+(Get-FileHash .\wsrv.exe -Algorithm SHA256).Hash.ToLower()   # compare with SHA256SUMS.txt
+```
+
+`wsrv.exe` is not code-signed, so SmartScreen may warn the first time it runs.
+
+### Making a release
+
+1. Set the new version in `src/util.h` (`kVersion`), `src/wsrv.rc` (`FILEVERSION`,
+   `PRODUCTVERSION` and the two version strings) and `CMakeLists.txt` (`project(... VERSION ...)`).
+2. Add a row to the table above, then commit and push.
+3. Make a clean build and run the tests:
+   ```
+   rmdir /s /q build\Release
+   build.cmd
+   build\Release\wsrv_tests.exe
+   ```
+4. Write the checksum and publish:
+   ```powershell
+   $h = (Get-FileHash build\Release\wsrv.exe -Algorithm SHA256).Hash.ToLower()
+   Set-Content SHA256SUMS.txt "$h  wsrv.exe" -Encoding ascii
+   gh release create vX.Y.Z build\Release\wsrv.exe SHA256SUMS.txt --target main --title "wsrv X.Y.Z" --notes-file notes.md
+   ```
 
 ## License
 
